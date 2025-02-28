@@ -3,7 +3,7 @@ const callStudent = async () => {
     // const phoneNumber = "+918072727965";
 
     try {
-        const response = await fetch("http://localhost:3001/call-student", {
+        const response = await fetch("http://localhost:3002/call-student", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ phoneNumber }),
@@ -20,9 +20,9 @@ const callStudent = async () => {
         alert("An error occurred while making the call.");
     }
     return(
+        <>
         <button onClick={callStudent}>Call Student</button>
+        </>
     );
 };
 export default callStudent;
-
-// Button in React component
