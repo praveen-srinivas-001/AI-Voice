@@ -1,35 +1,53 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const twilio = require("twilio");
+require('dotenv').config();
+const express = require('express');
+const routes = require('./routes');
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 4000;
+
+// Check for required environment variables
+const checkEnvVariables = () => {
+  const requiredVapiVars = ['VAPI_API_KEY', 'VAPI_ASSISTANT_ID'];
+  const requiredTwilioVars = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER'];
+  
+  const missingVapiVars = requiredVapiVars.filter(varName => !process.env[varName]);
+  const missingTwilioVars = requiredTwilioVars.filter(varName => !process.env[varName]);
+  
+  if (missingVapiVars.length > 0) {
+    console.warn(`⚠️ Missing Vapi.ai environment variables: ${missingVapiVars.join(', ')}`);
+    console.warn('Vapi.ai integration will be disabled.');
+  }
+  
+  if (missingTwilioVars.length > 0) {
+    console.warn(`⚠️ Missing Twilio environment variables: ${missingTwilioVars.join(', ')}`);
+    console.warn('Twilio integration will be disabled.');
+  }
+  
+  if (missingVapiVars.length > 0 && missingTwilioVars.length > 0) {
+    console.warn('⚠️ Both Vapi.ai and Twilio integrations are disabled.');
+    console.warn('Please set the required environment variables in your .env file.');
+    console.warn('See .env.example for the required variables.');
+  }
+};
+
+// Middleware
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
+// Use routes
+app.use('/', routes);
 
-const client = twilio(accountSid, authToken);
-
-app.post("/call-student", async (req, res) => {
-    const { phoneNumber } = req.body;
-    console.log(req.body);
-
-    try {
-        const call = await client.calls.create({
-            to: phoneNumber, 
-            from: twilioNumber,
-            url: "http://demo.twilio.com/docs/voice.xml"
-        });
-
-        res.status(200).json({ success: true, message: "Call initiated!", callSid: call.sid });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Call failed", error: error.message });
-    }
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Something went wrong!',
+    message: err.message
+  });
 });
 
-const PORT = 3002;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  checkEnvVariables();
+});

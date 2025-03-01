@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Say voice="Polly.Joanna">
-        Hello, this is an important call regarding your placement.
-        Please fill out the form in your WhatsApp group immediately.
-    </Say>
-</Response>
